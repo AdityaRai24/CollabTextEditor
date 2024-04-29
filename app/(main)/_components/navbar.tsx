@@ -7,6 +7,7 @@ import { MenuIcon } from "lucide-react";
 import { useParams } from "next/navigation";
 import { Title } from "./Title";
 import Publish from "./publish";
+import CreateRoom from "./CreateRoom";
 
 interface NavbarProps {
   isCollapsed: boolean;
@@ -14,6 +15,8 @@ interface NavbarProps {
 }
 
 export const Navbar = ({ isCollapsed, onResetWidth }: NavbarProps) => {
+
+
   const params = useParams();
   const document = useQuery(api.documents.getById, {
     documentId: params.documentId as Id<"documents">,
@@ -40,7 +43,8 @@ export const Navbar = ({ isCollapsed, onResetWidth }: NavbarProps) => {
         )}
         <div className="flex items-center justify-between w-full">
           <Title initialData={document} />
-         <div>
+         <div className="flex items-center justify-center gap-5">
+          <CreateRoom document={document}/>
             <Publish initialData={document}/>          
          </div>
         </div>

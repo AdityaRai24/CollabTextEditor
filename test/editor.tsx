@@ -17,27 +17,23 @@ type EditorProps = {
   editable?: boolean;
   doc: Y.Doc;
   provider: any;
-  username:string;
 };
 
 interface MainEditorProps {
   onEditorChange: (value: string) => void;
   initialContent?: string;
   editable?: boolean;
-  username: string;
 }
 
-const CollaborativeEditor = ({
+const Editor = ({
   onEditorChange,
   initialContent,
   editable,
-  username
 }: MainEditorProps) => {
   
+  const room = useRoom();
   const [doc, setDoc] = useState<Y.Doc>();
   const [provider, setProvider] = useState<any>();
-  
-  const room = useRoom();
 
   // Set up Liveblocks Yjs provider
   useEffect(() => {
@@ -63,7 +59,6 @@ const CollaborativeEditor = ({
       editable={editable}
       doc={doc}
       provider={provider}
-      username={username}
     />
   );
 };
@@ -91,7 +86,6 @@ function BlockNote({
   editable,
   doc,
   provider,
-  username
 }: EditorProps) {
   const clerkUser = useUser();
   const userColor = generateRandomColor();
@@ -116,7 +110,7 @@ function BlockNote({
 
       // Information for this user:
       user: {
-        name: username,
+        name: clerkUser?.user?.fullName,
         color: userColor,
       },
     },
@@ -132,4 +126,4 @@ function BlockNote({
   );
 }
 
-export default CollaborativeEditor;
+export default Editor;

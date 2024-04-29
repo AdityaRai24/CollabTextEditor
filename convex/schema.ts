@@ -14,4 +14,12 @@ export default defineSchema({
   })
     .index("by_user", ["userId"])
     .index("by_user_parent", ["userId", "parentDocument"]),
-});
+
+
+    rooms : defineTable({
+      documentId: v.id("documents"),
+      roomPassword: v.string(),
+      createdBy: v.string(),
+    })
+}
+);

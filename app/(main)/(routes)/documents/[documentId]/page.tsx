@@ -1,7 +1,7 @@
 "use client";
 
 import { Cover } from "@/components/Cover";
-import Editor from "@/components/editor";
+import Editor from "@/components/indiEditor";
 import Toolbar from "@/components/toolbar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/convex/_generated/api";
@@ -15,6 +15,7 @@ interface DocumentIdPageProps {
 }
 
 const DocumentIdPage = ({ params }: DocumentIdPageProps) => {
+
   const document = useQuery(api.documents.getById, {
     documentId: params.documentId,
   });
@@ -54,7 +55,7 @@ const DocumentIdPage = ({ params }: DocumentIdPageProps) => {
       <Cover url={document.coverImage} />
       <div className="w-full ">
         <Toolbar initialData={document} />
-        <Editor onEditorChange={onEditorChange} initialContent={document.content} />
+        <Editor onEditorChange={onEditorChange} initialContent={document?.content} />
       </div>
     </div>
   );

@@ -1,6 +1,7 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { action, internalQuery, mutation, query } from "./_generated/server";
 import { Doc, Id } from "./_generated/dataModel";
+import { internal } from "./_generated/api";
 
 export const archive = mutation({
   args: { id: v.id("documents") },
@@ -94,6 +95,80 @@ export const create = mutation({
     });
 
     return document;
+  },
+});
+
+export const createRoom = mutation({
+  args: {
+    documentId: v.id("documents"),
+    password: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Not authenticated");
+    }
+    const userId = identity.subject;
+
+    const document = await ctx.db.insert("rooms",{
+      documentId:args.documentId,
+      roomPassword: args.password,
+      createdBy: userId
+    })
+    return document;
+
+  },
+});
+
+
+export const getRoomById = query({
+  args:{
+    roomId: v.id("rooms")
+  },
+  handler: async(ctx,args)=>{
+    const room = await ctx.db.get(args.roomId);
+
+    if (!room) {
+      throw new Error("not found");
+    }
+    return room;
+  }
+})
+
+export const roomJoinCheck = action({
+  args:{
+    roomId: v.id("rooms"),
+    roomPassword : v.string()
+  },
+  handler: async(ctx,args)=>{
+    const finalRoom : any = await ctx.runQuery(internal.documents.readData, {
+        roomId:args.roomId,
+        roomPassword:args.roomPassword
+    })
+    if(!finalRoom){
+      throw new Error("Room does not exists")
+    }
+    if(finalRoom.roomPassword === args.roomPassword){
+      return {error:false,finalRoom , msg:"Room Joined Successfully"}
+    }else{
+      return {error:true,msg: "Invalid Password"}
+    }
+
+  }
+})
+
+export const readData = internalQuery({
+  args:{
+    roomId: v.id("rooms"),
+    roomPassword : v.string()
+  },
+  handler: async (ctx, args) => {
+    
+    const room = await ctx.db.get(args.roomId)
+    if(!room){
+      throw new Error("Room does not exist")
+    }
+    return room;
   },
 });
 
@@ -229,15 +304,11 @@ export const getById = query({
     if (document.isPublished && !document.isArchived) {
       return document;
     }
+    const userId = identity?.subject;
 
-    if (!identity) {
-      throw new Error("Not authenticated");
-    }
-    const userId = identity.subject;
-
-    if (document.userId !== userId) {
-      throw new Error("unauthorized");
-    }
+    // if (document.userId !== userId) {
+    //   throw new Error("unauthorized");
+    // }
     return document;
   },
 });
@@ -254,10 +325,10 @@ export const update = mutation({
   handler: async (ctx, args) => {
     const identity = await ctx.auth.getUserIdentity();
 
-    if (!identity) {
-      throw new Error("unauthenticated");
-    }
-    const userId = identity.subject;
+    // if (!identity) {
+    //   throw new Error("unauthenticated");
+    // }
+    const userId = identity?.subject;
 
     const { id, ...rest } = args;
     const existingDocument = await ctx.db.get(args.id);
@@ -266,9 +337,9 @@ export const update = mutation({
       throw new Error("Not found");
     }
 
-    if (existingDocument.userId !== userId) {
-      throw new Error("Not authorized");
-    }
+    // if (existingDocument.userId !== userId) {
+    //   throw new Error("Not authorized");
+    // }
 
     const document = await ctx.db.patch(args.id, {
       ...rest,

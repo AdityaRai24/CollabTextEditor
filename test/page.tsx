@@ -1,6 +1,5 @@
 "use client";
 
-import PreviewEditor from "@/app/(main)/_components/PreviewEditor";
 import { Cover } from "@/components/Cover";
 import Editor from "@/components/editor";
 import Toolbar from "@/components/toolbar";
@@ -8,6 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { useMutation, useQuery } from "convex/react";
+import { RoomProvider } from "@/liveblocks.config";
+import { ClientSideSuspense } from "@liveblocks/react";
 
 interface DocumentIdPageProps {
   params: {
@@ -23,7 +24,6 @@ const DocumentIdPage = ({ params }: DocumentIdPageProps) => {
   const update = useMutation(api.documents.update);
 
   const onEditorChange = (content: string) => {
-    console.log(content)
     update({
       id: params.documentId,
       content,
@@ -51,16 +51,22 @@ const DocumentIdPage = ({ params }: DocumentIdPageProps) => {
   }
 
   return (
-   <>
-   
-   <div className="pb-40">
-      <Cover preview url={document.coverImage} />
+    <div className="pb-40">
+      <Cover url={document.coverImage} />
       <div className="w-full ">
-        <Toolbar preview initialData={document} />
-        <PreviewEditor editable={false} onEditorChange={onEditorChange} initialContent={document.content} />
+        <Toolbar initialData={document} />
+        <RoomProvider id={document._id} initialPresence={{}}>
+          <ClientSideSuspense fallback="Loading…">
+            {() => (
+              <Editor
+                onEditorChange={onEditorChange}
+                initialContent={document.content}
+              />
+            )}
+          </ClientSideSuspense>
+        </RoomProvider>
       </div>
     </div>
-   </>
   );
 };
 
